@@ -1,0 +1,99 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Task API", "version": "1.0.0" },
+  "servers": [{ "url": "http://localhost:3000" }],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "About this API",
+        "responses": {
+          "200": { "description": "Name, version and available endpoints" }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check the server is alive",
+        "responses": {
+          "200": { "description": "Always { \"status\": \"ok\" }" }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "List all tasks",
+        "responses": {
+          "200": { "description": "An array of tasks" }
+        }
+      },
+      "post": {
+        "summary": "Create a new task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": { "type": "string", "example": "Buy milk" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "The task that was created" },
+          "400": { "description": "Title is missing or empty" }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "The id of the task",
+          "schema": { "type": "integer", "example": 1 }
+        }
+      ],
+      "get": {
+        "summary": "Get one task by id",
+        "responses": {
+          "200": { "description": "The task" },
+          "404": { "description": "Task not found" }
+        }
+      },
+      "put": {
+        "summary": "Update a task's title and/or done",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "example": "Buy oat milk" },
+                  "done": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "The updated task" },
+          "400": { "description": "Body is empty, or title is empty" },
+          "404": { "description": "Task not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a task",
+        "responses": {
+          "204": { "description": "Deleted, nothing to return" },
+          "404": { "description": "Task not found" }
+        }
+      }
+    }
+  }
+}
