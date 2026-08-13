@@ -9,6 +9,10 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
 
 const port = 3000;
 
+function toTask(row) {
+  return { id: row.id, title: row.title, done: Boolean(row.done) };
+}
+
 let tasks= [
     {id: 1, title : "task1", done : false},
     {id: 2, title : "task2", done : false},
@@ -24,18 +28,19 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  res.json(tasks)
+  const rows = db.prepare('SELECT * FROM tasks').all();
+  res.json(rows.map(toTask));
 });
 
 app.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  const task = tasks.find(t => t.id === id);
+  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
 
-  if(!task){
+  if(!row){
     return res.status(404).json({error: `Task ${id} not found`});
   }
 
-  res.json(task);
+  res.json(toTask(row));
 });
 
 app.post('/tasks', (req, res) => {
