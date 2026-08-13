@@ -13,12 +13,6 @@ function toTask(row) {
   return { id: row.id, title: row.title, done: Boolean(row.done) };
 }
 
-let tasks= [
-    {id: 1, title : "task1", done : false},
-    {id: 2, title : "task2", done : false},
-    {id: 3, title : "task3", done : true}
-]
-
 app.get('/', (req, res) => {
   res.json({ "name": "Task API", "version": "1.0", "endpoints": ["/tasks"] })
 });
@@ -59,9 +53,9 @@ app.post('/tasks', (req, res) => {
 
 app.put('/tasks/:id', (req, res) => {
     const id = Number(req.params.id);
-    const task = tasks.find(t => t.id === id);
+    const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
 
-    if(!task){
+    if(!row){
         return res.status(404).json({error: `Task ${id} not found`});
     }
     
@@ -76,26 +70,31 @@ app.put('/tasks/:id', (req, res) => {
         return res.status(400).json({ error: "Title cannot be empty" });
     }
 
+    let newTitle=row.title;
+    let newDone=row.done;
+
     if (title !== undefined) {
-        task.title = title;
+    newTitle = title;
     }
     if (done !== undefined) {
-        task.done = done;
+        newDone = done ? 1 : 0;
     }
 
-    res.json(task);
+    db.prepare('UPDATE tasks SET title = ?, done = ? WHERE id = ?').run(newTitle, newDone, id);
+    const updated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+
+    res.json(toTask(updated));
 
 });
 
 app.delete('/tasks/:id', (req, res) => {
     const id = Number(req.params.id);
+    const info = db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
 
-    const index = tasks.findIndex(t => t.id === id);
-    if (index === -1) {
+    if (info.changes === 0) {
         return res.status(404).json({ error: `Task ${id} not found` });
     }
-    
-    tasks.splice(index, 1);
+
     res.status(204).send();
 
 });
